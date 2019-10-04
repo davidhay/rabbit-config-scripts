@@ -12,3 +12,4 @@
 ./for-vhost-delete-resources.sh -u rabbit -p $RBT_PASSWD -v vh1
 ./for-vhost-import-config-file.sh -u rabbit -p $RBT_PASSWD -v vhFri1 -f ./broker-definitions.json
 
+./for-vhost-export-config-file.sh -u rabbit -p $RBT_PASSWD -v vhFri1

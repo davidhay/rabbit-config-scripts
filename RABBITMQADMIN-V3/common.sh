@@ -12,7 +12,7 @@ function getOptsUsernamePassword(){
 	p) PASSWORD=${OPTARG};;
 	esac
 	done
-	echo "getOptUsernamePassword [$USER] [$PASSWORD]"
+#	echo "getOptUsernamePassword [$USER] [$PASSWORD]"
 }
 
 function getOptsUsernamePasswordVhost(){
@@ -25,7 +25,7 @@ function getOptsUsernamePasswordVhost(){
 	v) VHOST=${OPTARG};;
 	esac
 	done
-	echo "getOptsUsernamePasswordVhost [$USER] [$PASSWORD] [$VHOST]"
+#	echo "getOptsUsernamePasswordVhost [$USER] [$PASSWORD] [$VHOST]"
 }
 
 function getOptsUsernamePasswordVhostFile(){
@@ -36,10 +36,10 @@ function getOptsUsernamePasswordVhostFile(){
 	u) USER=${OPTARG};;
 	p) PASSWORD=${OPTARG};;
 	v) VHOST=${OPTARG};;
-	f) BROKER_DEFINITIONS_FILE=${OPTARG};;
+	f) RABBIT_CONFIG_FILE=${OPTARG};;
 	esac
 	done
-	echo "getOptsUsernamePasswordVhostFile [$USER] [$PASSWORD] [$VHOST] [$BROKER_DEFINITIONS_FILE]"
+#	echo "getOptsUsernamePasswordVhostFile [$USER] [$PASSWORD] [$VHOST] [$RABBIT_CONFIG_FILE]"
 }
 
 function rabbitadm() {
@@ -75,3 +75,5 @@ export -f getOptsUsernamePasswordVhost
 export -f getOptsUsernamePasswordVhostFile
 export -f rabbitadm
 export -f rabbitadmForVhost
+export -f doesVhostExist
+

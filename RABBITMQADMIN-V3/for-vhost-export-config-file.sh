@@ -16,8 +16,8 @@ fi
 
 filename="exported-rabbit-config-for-$VHOST.json"
 
-echo "Exporting the broker definition file [$BROKER_DEFINITIONS_FILE] for vhost[$VHOST] to [$filename]"
+echo "Exporting the rabbit config for vhost[$VHOST] to [$filename]"
 
 rabbitadmForVhost export $filename
 
-echo "Finished export broker definition file [$BROKER_DEFINITIONS_FILE] for vhost[$VHOST] to [$filename]"
+echo "Finished exporting the rabbit config for vhost[$VHOST] to [$filename]"
