@@ -1,0 +1,65 @@
+IMPORT_FILE=rabbit-config-001.json
+
+EXPORT_FILE=rabbit-config-001-exp.json
+
+VHOST=vh3
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list vhosts
++------+----------+
+| name | messages |
++------+----------+
+| /    | 0        |
+| vh1  | 2        |
+| vh2  | 0        |
+| vh3  | 0        |
++------+----------+
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare vhost name=$VHOST
+vhost declared
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST delete vhost name=$VHOST
+vhost deleted
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST import $IMPORT_FILE
+Uploaded definitions from "localhost" to rabbit-config-001.json. The import process may take some time. Consult server logs to track progress.
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST export $EXPORT_FILE
+Exported definitions for localhost to "rabbit-config-001-exp.json"
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list queues    
++---------------+----------+
+|     name      | messages |
++---------------+----------+
+| q-pubSubType1 | 0        |
++---------------+----------+
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list exchanges 
++--------------------+---------+
+|        name        |  type   |
++--------------------+---------+
+|                    | direct  |
+| amq.direct         | direct  |
+| amq.fanout         | fanout  |
+| amq.headers        | headers |
+| amq.match          | headers |
+| amq.rabbitmq.trace | topic   |
+| amq.topic          | topic   |
+| ex-tpc-ex1         | topic   |
++--------------------+---------+
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list bindings  
++------------+---------------+---------------+
+|   source   |  destination  |  routing_key  |
++------------+---------------+---------------+
+|            | q-pubSubType1 | q-pubSubType1 |
+| ex-tpc-ex1 | q-pubSubType1 | type1         |
+| ex-tpc-ex1 | q-pubSubType1 | type2         |
++------------+---------------+---------------+
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list policies
++---------------+----------------+----------+-------------------------------------------+---------+----------+
+|     vhost     |      name      | apply-to |                definition                 | pattern | priority |
++---------------+----------------+----------+-------------------------------------------+---------+----------+
+| vhAlternateEx | polForUnrouted | all      | {"alternate-exchange": "alt.ex.unrouted"} | ^ex.*   | 0        |
++---------------+----------------+----------+-------------------------------------------+---------+----------+
+

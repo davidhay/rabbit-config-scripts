@@ -1,0 +1,76 @@
+{
+	"rabbit_version": "3.7.18",
+	"parameters": [],
+	"policies": [
+		{
+			"vhost": "vhAlternateEx",
+			"name": "polForUnrouted",
+			"pattern": "^ex.*",
+			"apply-to": "all",
+			"definition": {
+				"alternate-exchange": "alt.ex.unrouted"
+			},
+			"priority": 0
+		}
+	],
+	"queues": [
+		{
+			"name": "q.unrouted",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "q.one",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		}
+	],
+	"exchanges": [
+		{
+			"name": "ex.tpc.one",
+			"type": "topic",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "alt.ex.unrouted",
+			"type": "fanout",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		}
+	],
+	"bindings": [
+		{
+			"source": "alt.ex.unrouted",
+			"destination": "q.unrouted",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "ex.tpc.one",
+			"destination": "q.one",
+			"destination_type": "queue",
+			"routing_key": "type1",
+			"arguments": {
+				
+			}
+		}
+	]
+}
