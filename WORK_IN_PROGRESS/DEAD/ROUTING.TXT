@@ -1,5 +1,0 @@
-TO EXCHANGE
-1) set dead-letter-exchange - the message will be sent to this exchange.
-
-TO QUEUE
-2) set dead-letter-exchange to "", DEFAULT EXCHANGE and use dead-letter-routing-key of the queue where you want the message to end up.
