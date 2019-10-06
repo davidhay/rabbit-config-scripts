@@ -3,12 +3,12 @@
 	"parameters": [],
 	"policies": [
 		{
-			"vhost": "vhDemo03",
-			"name": "msgTimeoutPolicy",
+			"vhost": "demo",
+			"name": "messageTimeoutPolicy",
 			"pattern": "^q.*",
 			"apply-to": "queues",
 			"definition": {
-				"dead-letter-exchange": "myDeadLetterEx.01",
+				"dead-letter-exchange": "sys.ex.dead.letter",
 				"message-ttl": 30000
 			},
 			"priority": 1
@@ -16,19 +16,10 @@
 	],
 	"queues": [
 		{
-			"name": "q.two",
+			"name": "sys.q.dead.letter.01",
 			"durable": true,
 			"auto_delete": false,
 			"arguments": {
-				
-			}
-		},
-		{
-			"name": "myDeadLetterQ.01",
-			"durable": true,
-			"auto_delete": false,
-			"arguments": {
-				
 			}
 		},
 		{
@@ -36,30 +27,34 @@
 			"durable": true,
 			"auto_delete": false,
 			"arguments": {
-				
+			}
+		},
+		{
+			"name": "q.two",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
 			}
 		}
 	],
 	"exchanges": [
 		{
-			"name": "myDeadLetterEx.01",
+			"name": "sys.ex.dead.letter",
 			"type": "fanout",
 			"durable": true,
 			"auto_delete": false,
 			"internal": false,
-			"arguments": {
-				
+			"arguments": {				
 			}
 		}
 	],
 	"bindings": [
 		{
-			"source": "myDeadLetterEx.01",
-			"destination": "myDeadLetterQ.01",
+			"source": "sys.ex.dead.letter",
+			"destination": "sys.q.dead.letter.01",
 			"destination_type": "queue",
 			"routing_key": "",
 			"arguments": {
-				
 			}
 		}
 	]

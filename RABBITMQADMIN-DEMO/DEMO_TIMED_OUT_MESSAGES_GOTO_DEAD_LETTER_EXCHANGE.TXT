@@ -9,82 +9,81 @@ Assumptions : you have rabbit admin username and password
 $ export RBT_USER=<your rabbit admin user>
 $ export RBT_PASSWD=<your rabbit admin password>
 
-create a variable to hold the new vhost name for this demo - 'vhDemo03' is the example used here.
+create a variable to hold the new vhost name for this demo - 'vhDemo01' is the example used here.
 
-$ export VHOST='vhDemo03'
+$ export VHOST='vhDemo01'
 
 create the vhost
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare vhost name=$VHOST
 
 import the rabbit config for this demo into this vhost
-$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST import ./rbtCfg_04_mesage_timeout_demo.json
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST  import ./rbtCfg_04_message_timeout_demo.json
 
 check that there is a policy to define 'TTL' for 30seconds for messages on queues starting with 'q'
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list policies
-+----------+------------------+----------+---------------------------------------------------------------------+---------+----------+
-|  vhost   |       name       | apply-to |                             definition                              | pattern | priority |
-+----------+------------------+----------+---------------------------------------------------------------------+---------+----------+
-| vhDemo03 | msgTimeoutPolicy | queues   | {"message-ttl": 30000, "dead-letter-exchange": "myDeadLetterEx.01"} | ^q.*    | 1        |
-+----------+------------------+----------+---------------------------------------------------------------------+---------+----------+
++----------+----------------------+----------+----------------------------------------------------------------------+---------+----------+
+|  vhost   |         name         | apply-to |                              definition                              | pattern | priority |
++----------+----------------------+----------+----------------------------------------------------------------------+---------+----------+
+| vhDemo01 | messageTimeoutPolicy | queues   | {"message-ttl": 30000, "dead-letter-exchange": "sys.ex.dead.letter"} | ^q.*    | 1        |
++----------+----------------------+----------+----------------------------------------------------------------------+---------+----------+
 
 check that the TTL exchange has been defined with a queue bound to it.
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list exchanges | grep -i dead
-| myDeadLetterEx.01  | fanout  |
-
+| sys.ex.dead.letter | fanout  |
 
 check that the queues we need for the demo have been defined.
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues | grep -v amq
-+------------------+----------+
-|       name       | messages |
-+------------------+----------+
-| myDeadLetterQ.01 | 0        |
-| q.one            | 0        |
-| q.two            | 0        |
-+------------------+----------+
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.one                | 0        |
+| q.two                | 0        |
+| sys.q.dead.letter.01 | 0        |
++----------------------+----------+
 
 check that 'myDeadLetterQ.01' is bound to 'myDeadLetterEx.01'
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list bindings
-+-------------------+------------------+------------------+
-|      source       |   destination    |   routing_key    |
-+-------------------+------------------+------------------+
-|                   | myDeadLetterQ.01 | myDeadLetterQ.01 |
-|                   | q.one            | q.one            |
-|                   | q.two            | q.two            |
-| myDeadLetterEx.01 | myDeadLetterQ.01 |                  |
-+-------------------+------------------+------------------+
++--------------------+----------------------+----------------------+
+|       source       |     destination      |     routing_key      |
++--------------------+----------------------+----------------------+
+|                    | q.one                | q.one                |
+|                    | q.two                | q.two                |
+|                    | sys.q.dead.letter.01 | sys.q.dead.letter.01 |
+| sys.ex.dead.letter | sys.q.dead.letter.01 |                      |
++--------------------+----------------------+----------------------+
 
 Send test messages to 'q.one' and 'q.two' and check they are on the queues.
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="q.one" payload="q.one test message"
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="q.two" payload="q.two test message"
 
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
-+------------------+----------+
-|       name       | messages |
-+------------------+----------+
-| myDeadLetterQ.01 | 0        |
-| q.one            | 1        |
-| q.two            | 1        |
-+------------------+----------+
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.one                | 1        |
+| q.two                | 1        |
+| sys.q.dead.letter.01 | 0        |
++----------------------+----------+
 
 wait 40 seconds
 $ sleep 40
 
 check that the messages have 'timed out' and they are now on the dead letter Q.
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
-+------------------+----------+
-|       name       | messages |
-+------------------+----------+
-| myDeadLetterQ.01 | 2        |
-| q.one            | 0        |
-| q.two            | 0        |
-+------------------+----------+
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.one                | 0        |
+| q.two                | 0        |
+| sys.q.dead.letter.01 | 2        |
++----------------------+----------+
 
-Have a peek at the 2 messages on 'myDeadLetterQ.01'
-$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST get queue='myDeadLetterQ.01' count=2
-+-------------+-------------------+---------------+--------------------+---------------+------------------+-------------+
-| routing_key |     exchange      | message_count |      payload       | payload_bytes | payload_encoding | redelivered |
-+-------------+-------------------+---------------+--------------------+---------------+------------------+-------------+
-| q.one       | myDeadLetterEx.01 | 1             | q-one test message | 18            | string           | False       |
-| q.two       | myDeadLetterEx.01 | 0             | q-two test message | 18            | string           | False       |
-+-------------+-------------------+---------------+--------------------+---------------+------------------+-------------+
+Have a peek at the 2 messages on 'sys.q.dead.letter.01'
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST get queue='sys.q.dead.letter.01' count=2
++-------------+--------------------+---------------+--------------------+---------------+------------------+-------------+
+| routing_key |      exchange      | message_count |      payload       | payload_bytes | payload_encoding | redelivered |
++-------------+--------------------+---------------+--------------------+---------------+------------------+-------------+
+| q.one       | sys.ex.dead.letter | 1             | q.one test message | 18            | string           | True        |
+| q.two       | sys.ex.dead.letter | 0             | q.two test message | 18            | string           | True        |
++-------------+--------------------+---------------+--------------------+---------------+------------------+-------------+
 
