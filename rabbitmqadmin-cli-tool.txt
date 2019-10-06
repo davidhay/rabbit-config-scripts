@@ -1,0 +1,12 @@
+RABBITMQADMIN - see https://www.rabbitmq.com/management-cli.html
+===============================================================================================
+rabbitmqadmin uses python, it talks to rabbit over http
+
+It can add/remove users, vhosts, queues, exchanges, bindings.
+
+it can be downloaded from a running rabbit instance at http://localhost:15672/cli/rabbitmqadmin
+===============================================================================================
+assuming that definitions are tied to a namespace...
+===============================================================================================
+rabbitmqadmin help subcommands
+rabbitmqadmin help

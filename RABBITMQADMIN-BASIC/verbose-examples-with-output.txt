@@ -1,0 +1,142 @@
+=================================================================================
+EXAMPLE ENV VARIABLES
+=================================================================================
+
+IMPORT_FILE=rabbit-config-001.json
+
+EXPORT_FILE=rabbit-config-001-exp.json
+
+VHOST=vh3
+
+=================================================================================
+VHOSTS list/create/delete
+=================================================================================
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list vhosts
++------+----------+
+| name | messages |
++------+----------+
+| /    | 0        |
+| vh1  | 2        |
+| vh2  | 0        |
+| vh3  | 0        |
++------+----------+
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare vhost name=$VHOST
+vhost declared
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST delete vhost name=$VHOST
+vhost deleted
+
+=================================================================================
+IMPORT/EXPORT CONFIG for a VHOST
+=================================================================================
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST import $IMPORT_FILE
+Uploaded definitions from "localhost" to rabbit-config-001.json. The import process may take some time. Consult server logs to track progress.
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST export $EXPORT_FILE
+Exported definitions for localhost to "rabbit-config-001-exp.json"
+
+=================================================================================
+QUEUES for vhost
+=================================================================================
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list queues    
++---------------+----------+
+|     name      | messages |
++---------------+----------+
+| q-pubSubType1 | 0        |
++---------------+----------+
+
+=================================================================================
+EXCHANGES for vhost
+=================================================================================
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list exchanges 
++--------------------+---------+
+|        name        |  type   |
++--------------------+---------+
+|                    | direct  |
+| amq.direct         | direct  |
+| amq.fanout         | fanout  |
+| amq.headers        | headers |
+| amq.match          | headers |
+| amq.rabbitmq.trace | topic   |
+| amq.topic          | topic   |
+| ex-tpc-ex1         | topic   |
++--------------------+---------+
+
+=========================================================================================
+BINDINGS for vhost - note - source and destination - they can be queues and/or exchanges
+=========================================================================================
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list bindings  
++------------+---------------+---------------+
+|   source   |  destination  |  routing_key  |
++------------+---------------+---------------+
+|            | q-pubSubType1 | q-pubSubType1 |
+| ex-tpc-ex1 | q-pubSubType1 | type1         |
+| ex-tpc-ex1 | q-pubSubType1 | type2         |
++------------+---------------+---------------+
+
+===========================
+POLICIES for vhost - can be imported via config - need to double check
+===========================
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list policies
++---------------+----------------+----------+-------------------------------------------+---------+----------+
+|     vhost     |      name      | apply-to |                definition                 | pattern | priority |
++---------------+----------------+----------+-------------------------------------------+---------+----------+
+| vhAlternateEx | polForUnrouted | all      | {"alternate-exchange": "alt.ex.unrouted"} | ^ex.*   | 0        |
++---------------+----------------+----------+-------------------------------------------+---------+----------+
+
+===========================
+USERS 
+===========================
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list users
++--------+--------------------------------+--------------------------------------------------+---------------+
+|  name  |       hashing_algorithm        |                  password_hash                   |     tags      |
++--------+--------------------------------+--------------------------------------------------+---------------+
+| bugs   | rabbit_password_hashing_sha256 | P/3EzuP8rCtnbj14CgpUSnZ26EITkPw0DIf3LlDSyUCqddjo | administrator |
+| mickey | rabbit_password_hashing_sha256 | NeplykP88U7GVZeoTG23ZMna/BrFfoplRS94bJra06gCUPvd |               |
+| rabbit | rabbit_password_hashing_sha256 | F1Aa/9adwlzfjHBLNnGF2yHPDMMSJD8h6fuhl+XJ21YbxUCR | administrator |
++--------+--------------------------------+--------------------------------------------------+---------------+
+
+rabbitmqadmin --user=mickey --password=mouse list users
+*** Access refused: /api/users
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD delete user name=bugs
+user deleted
+
+To use management ui - user has to be "management" tag.
+
+# This should allow a user to create resources and monitor them without being able to create new vhosts or users.
+# BUT when the user logs into the manaagement UI - they get an error "The user is not an administrator"
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare user name=bugs password=bunny tags="policymaker,monitoring"
+user declared
+
+# This works but the user can do too much - anything.
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare user name=bugs password=bunny tags="administrator"
+user declared
+
+===========================
+USER PERSMISSIONS
+===========================
+
+# Give a user FULL access to resources within a VHOST
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare permission vhost=vhBugs user=bugs configure=.* write=.* read=.*
+permission declared
+
+# List persmissions for all users - if the user is not listed - they (probably) don't have any persmissions
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list permissions
++---------------+-----------+------+--------+-------+
+|     vhost     | configure | read |  user  | write |
++---------------+-----------+------+--------+-------+
+| /             | .*        | .*   | rabbit | .*    |
+| vh1           | .*        | .*   | rabbit | .*    |
+| vh2           | .*        | .*   | rabbit | .*    |
+| vh3           | .*        | .*   | rabbit | .*    |
+| vhAlternateEx | .*        | .*   | rabbit | .*    |
+| vhBugs        | .*        | .*   | bugs   | .*    |
++---------------+-----------+------+--------+-------+
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD delete permission vhost=vhBugs user=bugs
+permission deleted
+

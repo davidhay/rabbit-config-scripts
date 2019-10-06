@@ -1,0 +1,24 @@
+THIS MESSAGE WAS ROUTED TO 'deadLetterExchange' which fanned out to 'dlq.one' and 'dlq.two'
+
+The server reported 0 messages remaining.
+
+Exchange	deadLetterExchange
+Routing Key	q.one  <-- this was the original routing key - I had not configured 'dead-letter-routing-key'
+Redelivered	○
+Properties	
+delivery_mode:	1
+headers:	
+x-death:	
+count:	1
+exchange:	
+queue:	q.one
+reason:	expired
+routing-keys:	q.one
+time:	1570193514
+x-first-death-exchange:	
+x-first-death-queue:	q.one
+x-first-death-reason:	expired
+Payload
+14 bytes
+Encoding: string
+this is a test

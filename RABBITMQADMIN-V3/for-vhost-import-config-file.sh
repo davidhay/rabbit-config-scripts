@@ -15,6 +15,7 @@ if [[ ! -f $RABBIT_CONFIG_FILE ]]; then
     echo "Rabbit Config file [$RABBIT_CONFIG_FILE] not found!"
     exit -1
 fi
+
 echo "Deleting existing broker definitions for [$VHOST]"
 deleteVhostResources
 

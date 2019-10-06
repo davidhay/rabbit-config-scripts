@@ -10,3 +10,4 @@ if [[ $vhostExists != "Y" ]]; then
 	exit -1
 fi
 rabbitadm delete vhost name=$VHOST
+echo "Deleted vhost $VHOST"

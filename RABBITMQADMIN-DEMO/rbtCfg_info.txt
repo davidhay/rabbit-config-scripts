@@ -1,0 +1,21 @@
+1) rbtCfg_01_alternate_ex_policy.json
+Defines a vhost specific policy to make any unrouted message from exchanges beginning with 'ex' get routed to the
+fanout exchange called 'alt.ex.unrouted'. The 'alt.ex.unrouted' fanout exchange is bound to a single queue called 'q.unrouted'.
+
+2) rbtCfg_02_alternate_ex_demo.json
+Extends the config of 'rbgCfg_01_alternate_ex_policy.json' to help demo how un-routed messages get send to a common 'Alternate Exchange'
+See 'DEMO_ALTERNATE_EXCHANGE_FOR_UNROUTED_MESSAGES.TXT'
+
+3) rbtCfg_03_message_timeout_policy.json
+Defines a vhost specific policy for messages to timeout after they have been on queues for 30seconds.
+This policy applies to queue names beginning with 'q'
+After 30seconds they will be sent to the fanout exchange 'myDeadLetterEx.01' which has one bound queue 'myDeadLetterQ.01'.
+
+4) rbtCfg_04_message_timeout_demo.json
+Extends the config of 'rbtCfg_03_message_timeout_policy' to help demo how messages left un-processed on queues
+will timeout (after 30s) and be send to common 'dead letter exchange'.
+See 'DEMO_TIMED_OUT_MESSAGE_GOTO_DEAD_LETTER_EXCHANGE.TXT'
+
+5) rbtCfg_05_audit_demo.json
+Creates 2 topic exchanges with 2 downstream Qs each.
+Creates a global audit exchange.

@@ -1,0 +1,9 @@
+./show-all-vhosts.sh -u rabbit -p $RBT_PASSWD
+
+./for-all-vhosts-show-bindings.sh  -u rabbit -p $RBT_PASSWD
+./for-all-vhosts-show-queues.sh    -u rabbit -p $RBT_PASSWD
+./for-all-vhosts-show-exchanges.sh -u rabbit -p $RBT_PASSWD
+
+./for-vhost-show-resources.sh -u rabbit -p $RBT_PASSWD -v vh1
+./for-vhost-delete-resources.sh -u rabbit -p $RBT_PASSWD -v vh1
+./for-vhost-import-config-file.sh -u rabbit -p $RBT_PASSWD -v vh1 -f ./broker-definitions.json

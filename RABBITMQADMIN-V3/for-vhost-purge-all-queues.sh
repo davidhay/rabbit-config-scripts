@@ -20,6 +20,6 @@ for x in 5 4 3 2 1; do
   echo -n "$x "
   sleep 1
 done
-
+echo ""
 echo "AFTER"
 rabbitadmForVhost list queues vhost name messages

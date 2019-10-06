@@ -1,0 +1,44 @@
+TTL - in policy set "" to 30000 (for 30 seconds)
+
+Dead letter routing key (x-dead-letter-routing-key) - provides a new routing key context to the dead letter exchange; 
+if no dead letter routing key is set, then the original routing key will be used
+
+TO DLX FANOUT EXCHANGE - with 2 attached queues dlq.one and dlq.two
+1) in policy "dead-letter-exchange" - the message will be sent to this exchange and end up on dlq.one AND dql.two
+The routing key is "the queue" the message came from.
+
+USING dead-letter-routing-key
+2) same as 1 but specify 'dead-letter-routing-key' in policy
+davidhay@localhost RABBITMQADMIN-V3 (master) $ rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list policies
++--------+----------------------------+----------+---------------------------------------------------------------------------------------------------------------------+---------+----------+
+| vhost  |            name            | apply-to |                                                     definition                                                      | pattern | priority |
++--------+----------------------------+----------+---------------------------------------------------------------------------------------------------------------------+---------+----------+
+| vhDead | deadLetterExchangeAfter30s | queues   | {"message-ttl": 30000, "dead-letter-routing-key": "dead.routing.key", "dead-letter-exchange": "deadLetterExchange"} | ^q.*    | 1        |
++--------+----------------------------+----------+---------------------------------------------------------------------------------------------------------------------+---------+----------+
+
+MESSAGE WHEN ON DLQ IS
+
+
+Message 1
+The server reported 1 messages remaining.
+
+Exchange	deadLetterExchange
+Routing Key	dead.routing.key    <--- I CONFIGURED THIS
+Redelivered	●
+Properties	
+delivery_mode:	2
+headers:	
+x-death:	
+count:	1
+exchange:	
+queue:	q.one
+reason:	expired
+routing-keys:	q.one
+time:	1570198303
+x-first-death-exchange:	
+x-first-death-queue:	q.one
+x-first-death-reason:	expired
+Payload
+16 bytes
+Encoding: string
+message on q.one

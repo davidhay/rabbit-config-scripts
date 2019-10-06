@@ -21,3 +21,19 @@ rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list exchanges
 rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list bindings  
 
 rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list policies
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list users
+
+rabbitmqadmin --user=mickey --password=mouse list users
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD delete user name=bugs
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare user name=bugs password=bunny tags="policymaker,monitoring"
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare user name=bugs password=bunny tags="administrator"
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare permission vhost=vhBugs user=bugs configure=.* write=.* read=.*
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list permissions
+
+rabbitmqadmin --user=rabbit --password=$RBT_PASSWD delete permission vhost=vhBugs user=bugs

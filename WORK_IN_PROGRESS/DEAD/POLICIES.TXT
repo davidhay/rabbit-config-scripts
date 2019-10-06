@@ -1,0 +1,6 @@
+davidhay@localhost RABBITMQADMIN-V3 (master) $ rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list policies
++--------+--------------------+----------+----------------------------------------------------------------------+---------+----------+
+| vhost  |        name        | apply-to |                              definition                              | pattern | priority |
++--------+--------------------+----------+----------------------------------------------------------------------+---------+----------+
+| vhDead | deadAfter30Seconds | queues   | {"message-ttl": 30000, "dead-letter-exchange": "deadLetterExchange"} | ^q.*    | 1        |
++--------+--------------------+----------+----------------------------------------------------------------------+---------+----------+
