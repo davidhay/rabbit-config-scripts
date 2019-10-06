@@ -1,39 +1,42 @@
-IMPORT_FILE=rabbit-config-001.json
+IMPORT_FILE=rbtCfg-example-001.json
 
-EXPORT_FILE=rabbit-config-001-exp.json
+EXPORT_FILE=rbtCfg-example-001-exported.json
 
 VHOST=vh3
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list vhosts
+export RBT_USER=rabbit
+export RBT_PASSWD=bunny
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare vhost name=$VHOST
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD list vhosts
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST delete vhost name=$VHOST
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare vhost name=$VHOST
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST import $IMPORT_FILE
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST delete vhost name=$VHOST
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST export $EXPORT_FILE
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST import $IMPORT_FILE
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list queues    
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST export $EXPORT_FILE
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list exchanges 
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues    
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list bindings  
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list exchanges 
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD --vhost=$VHOST list policies
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list bindings  
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list users
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list policies
+
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD list users
 
 rabbitmqadmin --user=mickey --password=mouse list users
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD delete user name=bugs
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD delete user name=bugs
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare user name=bugs password=bunny tags="policymaker,monitoring"
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare user name=bugs password=bunny tags="policymaker,monitoring"
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare user name=bugs password=bunny tags="administrator"
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare user name=bugs password=bunny tags="administrator"
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD declare permission vhost=vhBugs user=bugs configure=.* write=.* read=.*
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare permission vhost=$VHOST user=bugs configure=.* write=.* read=.*
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD list permissions
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD list permissions
 
-rabbitmqadmin --user=rabbit --password=$RBT_PASSWD delete permission vhost=vhBugs user=bugs
+rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD delete permission vhost=$VHOST user=bugs
