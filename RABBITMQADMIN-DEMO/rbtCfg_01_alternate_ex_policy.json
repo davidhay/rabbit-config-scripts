@@ -3,19 +3,19 @@
 	"parameters": [],
 	"policies": [
 		{
-			"vhost": "vhAlternateEx",
-			"name": "polForUnrouted",
+			"vhost": "demo",
+			"name": "unroutedMessagePolicy",
 			"pattern": "^ex.*",
 			"apply-to": "all",
 			"definition": {
-				"alternate-exchange": "alt.ex.unrouted"
+				"alternate-exchange": "sys.ex.unrouted"
 			},
 			"priority": 0
 		}
 	],
 	"queues": [
 		{
-			"name": "q.unrouted",
+			"name": "sys.q.unrouted",
 			"durable": true,
 			"auto_delete": false,
 			"arguments": {
@@ -25,7 +25,7 @@
 	],
 	"exchanges": [
 		{
-			"name": "alt.ex.unrouted",
+			"name": "sys.ex.unrouted",
 			"type": "fanout",
 			"durable": true,
 			"auto_delete": false,
@@ -37,8 +37,8 @@
 	],
 	"bindings": [
 		{
-			"source": "alt.ex.unrouted",
-			"destination": "q.unrouted",
+			"source": "sys.ex.unrouted",
+			"destination": "sys.q.unrouted",
 			"destination_type": "queue",
 			"routing_key": "",
 			"arguments": {

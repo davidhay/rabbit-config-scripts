@@ -19,43 +19,33 @@ $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare vhost name=$VHOS
 import the rabbit config for this demo into this vhost
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST import ./rbtCfg_02_alternate_ex_demo.json
 
-check that there is a policy to define 'alternate exhcnage' for unrouted messages.
+check that there is a policy to define 'alternate exchange' for unrouted messages.
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list policies
-+----------+----------------+----------+-------------------------------------------+---------+----------+
-|  vhost   |      name      | apply-to |                definition                 | pattern | priority |
-+----------+----------------+----------+-------------------------------------------+---------+----------+
-| vhDemo01 | polForUnrouted | all      | {"alternate-exchange": "alt.ex.unrouted"} | ^ex.*   | 0        |
-+----------+----------------+----------+-------------------------------------------+---------+----------+
++----------+-----------------------+----------+-------------------------------------------+---------+----------+
+|  vhost   |         name          | apply-to |                definition                 | pattern | priority |
++----------+-----------------------+----------+-------------------------------------------+---------+----------+
+| vhDemo01 | unroutedMessagePolicy | all      | {"alternate-exchange": "sys.ex.unrouted"} | ^ex.*   | 0        |
++----------+-----------------------+----------+-------------------------------------------+---------+----------+
 
-check that these 2 exchanges have been created 'alt.ex.unrouted' and 'ex.topic.01'
+check that these 2 exchanges have been created 'sys.ex.unrouted' and 'ex.topic.01'
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list exchanges | grep -v 'amq'
 +--------------------+---------+
 |        name        |  type   |
 +--------------------+---------+
 |                    | direct  |
-| alt.ex.unrouted    | fanout  |
 | ex.topic.01        | topic   |
+| sys.ex.unrouted    | fanout  |
 +--------------------+---------+
 
-check that these 3 queues have been created 'q.type1, q.type2, q.unrouted'
+check that these 3 queues have been created 'q.type1, q.type2, sys.q.unrouted' and there are no messages on these 3 queues.
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
-+------------+----------+
-|    name    | messages |
-+------------+----------+
-| q.type1    | 0        |
-| q.type2    | 0        |
-| q.unrouted | 0        |
-+------------+----------+
-
-check that there are no messages on these queues
-$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
-+------------+----------+
-|    name    | messages |
-+------------+----------+
-| q.type1    | 0        |
-| q.type2    | 0        |
-| q.unrouted | 0        |
-+------------+----------+
++----------------+----------+
+|      name      | messages |
++----------------+----------+
+| q.type1        | 0        |
+| q.type2        | 0        |
+| sys.q.unrouted | 0        |
++----------------+----------+
 
 check that there are 2 routing bindings for the topic exchange 'ex.topic.01'
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list bindings | grep 'ex.topic.01'
@@ -68,34 +58,34 @@ This shows that 'type3' messages sent to 'ex.topic.02' are un-routed.
 Send a type1 message to 'ex.topic.01' and check it ends up on 'q.type1'
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="type1" exchange="ex.topic.01" payload="type1:test message"
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
-+------------+----------+
-|    name    | messages |
-+------------+----------+
-| q.type1    | 1        |
-| q.type2    | 0        |
-| q.unrouted | 0        |
-+------------+----------+
++----------------+----------+
+|      name      | messages |
++----------------+----------+
+| q.type1        | 1        |
+| q.type2        | 0        |
+| sys.q.unrouted | 0        |
++----------------+----------+
 
 Send a type2 message to 'ex.topic.01' and check it ends up on 'q.type2'
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="type2" exchange="ex.topic.01" payload="type2:test message"
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
-+------------+----------+
-|    name    | messages |
-+------------+----------+
-| q.type1    | 1        |
-| q.type2    | 1        |
-| q.unrouted | 0        |
-+------------+----------+
++----------------+----------+
+|      name      | messages |
++----------------+----------+
+| q.type1        | 1        |
+| q.type2        | 1        |
+| sys.q.unrouted | 0        |
++----------------+----------+
 
-Send a type2 message to 'ex.topic.01' and check it ends up on 'q.unrouted'. Because the messages was unrouted on 'ex.topic.01' it was sent to 'alt.ex.unrouted' then 'q.unrouted'
+Send a type3 message to 'ex.topic.01' and check it ends up on 'sys.q.unrouted'. Because the messages was unrouted on 'ex.topic.01' it was sent to 'sys.ex.unrouted' then 'sys.q.unrouted'
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="type3" exchange="ex.topic.01" payload="type3:test message"
 $ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
-+------------+----------+
-|    name    | messages |
-+------------+----------+
-| q.type1    | 1        |
-| q.type2    | 1        |
-| q.unrouted | 1        |
-+------------+----------+
++----------------+----------+
+|      name      | messages |
++----------------+----------+
+| q.type1        | 1        |
+| q.type2        | 1        |
+| sys.q.unrouted | 1        |
++----------------+----------+
 
 
