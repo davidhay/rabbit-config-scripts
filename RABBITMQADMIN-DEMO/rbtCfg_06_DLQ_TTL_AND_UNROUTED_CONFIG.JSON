@@ -1,0 +1,186 @@
+{
+	"rabbit_version": "3.7.18",
+	"parameters": [],
+	"policies": [
+		{
+			"vhost": "vhDemo01",
+			"name": "messageTimeoutPolicy",
+			"pattern": "^q.*",
+			"apply-to": "queues",
+			"definition": {
+				"dead-letter-exchange": "sys.ex.dead.letter",
+				"message-ttl": 30000
+			},
+			"priority": 1
+		},
+		{
+			"vhost": "vhDemo01",
+			"name": "unroutedMessagePolicy",
+			"pattern": "^ex.router.*",
+			"apply-to": "exchanges",
+			"definition": {
+				"alternate-exchange": "sys.ex.unrouted"
+			},
+			"priority": 0
+		}
+	],
+	"queues": [
+		{
+			"name": "sys.q.dead.letter.01",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "sys.q.unrouted",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "q.type2",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "sys.q.audit.01",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "q.type1",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		}
+	],
+	"exchanges": [
+		{
+			"name": "ex.entry.point",
+			"type": "fanout",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "sys.ex.dead.letter",
+			"type": "fanout",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "sys.ex.audit",
+			"type": "fanout",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "ex.router.main",
+			"type": "topic",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "sys.ex.unrouted",
+			"type": "fanout",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		}
+	],
+	"bindings": [
+		{
+			"source": "ex.entry.point",
+			"destination": "ex.router.main",
+			"destination_type": "exchange",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "ex.entry.point",
+			"destination": "sys.ex.audit",
+			"destination_type": "exchange",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "ex.router.main",
+			"destination": "q.type1",
+			"destination_type": "queue",
+			"routing_key": "type1",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "ex.router.main",
+			"destination": "q.type2",
+			"destination_type": "queue",
+			"routing_key": "type2",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "sys.ex.audit",
+			"destination": "sys.q.audit.01",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "sys.ex.dead.letter",
+			"destination": "sys.q.dead.letter.01",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "sys.ex.unrouted",
+			"destination": "sys.q.unrouted",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		}
+	]
+}

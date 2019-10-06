@@ -6,7 +6,7 @@
 			"vhost": "demo",
 			"name": "unroutedMessagePolicy",
 			"pattern": "^ex.*",
-			"apply-to": "all",
+			"apply-to": "exchanges",
 			"definition": {
 				"alternate-exchange": "sys.ex.unrouted"
 			},
