@@ -1,0 +1,99 @@
+{
+	"rabbit_version": "3.7.18",
+	"parameters": [],
+	"policies": [],
+	"queues": [
+		{
+			"name": "q.aaa.01",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "q.bbb.02",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "q.bbb.01",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "q.aaa.02",
+			"durable": true,
+			"auto_delete": false,
+			"arguments": {
+				
+			}
+		}
+	],
+	"exchanges": [
+		{
+			"name": "ex.bbb",
+			"type": "fanout",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		},
+		{
+			"name": "ex.aaa",
+			"type": "direct",
+			"durable": true,
+			"auto_delete": false,
+			"internal": false,
+			"arguments": {
+				
+			}
+		}
+	],
+	"bindings": [
+		{
+			"source": "ex.aaa",
+			"destination": "q.aaa.01",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "ex.aaa",
+			"destination": "q.aaa.02",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "ex.bbb",
+			"destination": "q.bbb.01",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		},
+		{
+			"source": "ex.bbb",
+			"destination": "q.bbb.02",
+			"destination_type": "queue",
+			"routing_key": "",
+			"arguments": {
+				
+			}
+		}
+	]
+}

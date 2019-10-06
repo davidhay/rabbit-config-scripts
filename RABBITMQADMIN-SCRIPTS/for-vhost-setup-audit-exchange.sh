@@ -10,14 +10,13 @@ if [[ $vhostExists != "Y" ]]; then
 	exit -1
 fi
 
-export UN_ROUTED_EX="alt.ex.unrouted"
-export DEAD_LETTER+EX="myDeadLetterEx.01"
+export SYS_EX_UNROUTED="sys.ex.unrouted"
+export SYS_EX_DEAD_LETTER="sys.ex.dead.letter"
 
-export VHOST_AUDIT="vhost.audit"
-export VHOST_AUDIT_EX="${VHOST_AUDIT}.ex"
-export VHOST_AUDIT_Q1="${VHOST_AUDIT}.q1"
-echo "VHOST_AUDIT_EX $VHOST_AUDIT_EX"
-echo "VHOST_AUDIT_Q1 $VHOST_AUDIT_Q1"
+export VHOST_AUDIT_EX="sys.ex.audit"
+export VHOST_AUDIT_Q1="sys.q.audit.01"
+echo "VHOST_AUDIT_EX [$VHOST_AUDIT_EX]"
+echo "VHOST_AUDIT_Q1 [$VHOST_AUDIT_Q1]"
 
 rabbitadmForVhost delete exchange name="$VHOST_AUDIT_EX"
 rabbitadmForVhost declare exchange name="$VHOST_AUDIT_EX" type="fanout" durable="true"

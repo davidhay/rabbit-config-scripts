@@ -16,6 +16,8 @@ Extends the config of 'rbtCfg_03_message_timeout_policy' to help demo how messag
 will timeout (after 30s) and be send to common 'dead letter exchange'.
 See 'DEMO_TIMED_OUT_MESSAGE_GOTO_DEAD_LETTER_EXCHANGE.TXT'
 
-5) rbtCfg_05_audit_demo.json
-Creates 2 topic exchanges with 2 downstream Qs each.
-Creates a global audit exchange.
+5) rbtCfg_05_auditing_setup_demo_preperation.json
+Creates the following
+	ex.aaa (fanout) bound to q.aaa.01
+	ex.bbb (topic) bound to q.bbb.01 with routing key 'type1'
+See 'DEMO_ADD_AUDITING_TO_EXISTING_EXCHANGES.TXT'

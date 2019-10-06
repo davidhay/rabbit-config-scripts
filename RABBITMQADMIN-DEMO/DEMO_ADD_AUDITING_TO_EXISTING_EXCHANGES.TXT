@@ -1,0 +1,98 @@
+This demo shows how we can run a script to add 'auditing so we record a copy of each message sent to non-system exchanges.
+
+Assumptions : you have rabbit admin username and password
+
+$ export RBT_USER=<your rabbit admin user>
+$ export RBT_PASSWD=<your rabbit admin password>
+
+create a variable to hold the new vhost name for this demo - 'vhDemo01' is the example used here.
+
+$ export VHOST='vhDemo01'
+
+create the vhost
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare vhost name=$VHOST
+
+import the rabbit config for this demo into this vhost
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST  import ./rbtCfg_05_auditing_setup_demo_preperation.json
+
+check that there are two exchanges 'ex.aaa' and 'ex.bbb' 
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST  list exchanges | grep -v 'amq'
++--------------------+---------+
+|        name        |  type   |
++--------------------+---------+
+|                    | direct  |
+| ex.aaa             | fanout  |
+| ex.bbb             | topic   |
++--------------------+---------+
+
+check the bindings for 'ex.aaa' and 'ex.bbb'
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST  list bindings
++--------+-------------+-------------+
+| source | destination | routing_key |
++--------+-------------+-------------+
+|        | q.aaa.01    | q.aaa.01    |
+|        | q.bbb.01    | q.bbb.01    |
+| ex.aaa | q.aaa.01    |             |
+| ex.bbb | q.bbb.01    | type1       |
++--------+-------------+-------------+
+
+run a script to setup the auditing for 'ex.aaa' and 'ex.bbb'
+$ cd ../RABBITMQADMIN-SCRIPTS
+$ ./for-vhost-setup-audit-exchange.sh -u $RBT_USER -p $RBT_PASSWD -v $VHOST
+
+check that the end of the script outputs the following:
++--------------+----------------+----------------+
+|    source    |  destination   |  routing_key   |
++--------------+----------------+----------------+
+|              | q.aaa.01       | q.aaa.01       |
+|              | q.bbb.01       | q.bbb.01       |
+|              | sys.q.audit.01 | sys.q.audit.01 |
+| ex.aaa       | q.aaa.01       |                |
+| ex.aaa       | sys.ex.audit   | #              |
+| ex.bbb       | q.bbb.01       | type1          |
+| ex.bbb       | sys.ex.audit   | #              |
+| sys.ex.audit | sys.q.audit.01 |                |
++--------------+----------------+----------------+
+
+Note these 3 new bindings involving 'sys.ex.audit'
+
+source 'ex.aaa'      , dest 'sys.ex.audit' and routing key '#'
+source 'ex.bbb'      , dest 'sys.ex.audit' and routing key '#'
+source 'sys.ex.audit', dest 'sys.q.audit.01' and no routing key
+
+If we send a message to 'ex.aaa' with no routing key, it should be on 'q.aaa.01' and copied to 'sys.q.audit.01'
+If we send a message to 'ex.aaa' with routing key 'type1', it should be on 'q.bbb.01' and copied to 'sys.q.audit.01'
+
+Send a message to 'ex.aaa' and check it ends up on 'sys.q.audit.01' and 'q.aaa.01'
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish exchange="ex.aaa" payload="msg for q.aaa.01" routing_key=""
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
++----------------+----------+
+|      name      | messages |
++----------------+----------+
+| q.aaa.01       | 1        |
+| q.bbb.01       | 0        |
+| sys.q.audit.01 | 1        |
++----------------+----------+
+
+Send a message to 'ex.bbb' with routing key 'type1' and check it ends up on 'sys.q.audit.01' and 'q.aaa.02'
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish exchange="ex.bbb" payload="msg for q.bbb.01" routing_key="type1"
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
++----------------+----------+
+|      name      | messages |
++----------------+----------+
+| q.aaa.01       | 1        |
+| q.bbb.01       | 1        |
+| sys.q.audit.01 | 2        |
++----------------+----------+
+
+Have a peek at the 2 messages on 'sys.q.audit.01'
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST get queue='sys.q.audit.01' count=2
++-------------+----------+---------------+------------------+---------------+------------------+------------+-------------+
+| routing_key | exchange | message_count |     payload      | payload_bytes | payload_encoding | properties | redelivered |
++-------------+----------+---------------+------------------+---------------+------------------+------------+-------------+
+|             | ex.aaa   | 1             | msg for q.aaa.01 | 16            | string           |            | False       |
+| type1       | ex.bbb   | 0             | msg for q.bbb.01 | 16            | string           |            | False       |
++-------------+----------+---------------+------------------+---------------+------------------+------------+-------------+
+
