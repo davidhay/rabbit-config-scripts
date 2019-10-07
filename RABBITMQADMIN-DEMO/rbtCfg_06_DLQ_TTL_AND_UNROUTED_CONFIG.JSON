@@ -34,7 +34,7 @@
 			}
 		},
 		{
-			"name": "sys.q.unrouted",
+			"name": "sys.q.unrouted.01",
 			"durable": true,
 			"auto_delete": false,
 			"arguments": {
@@ -175,7 +175,7 @@
 		},
 		{
 			"source": "sys.ex.unrouted",
-			"destination": "sys.q.unrouted",
+			"destination": "sys.q.unrouted.01",
 			"destination_type": "queue",
 			"routing_key": "",
 			"arguments": {

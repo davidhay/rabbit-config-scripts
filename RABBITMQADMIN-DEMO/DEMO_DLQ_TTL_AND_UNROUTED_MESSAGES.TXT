@@ -1,0 +1,188 @@
+This demo shows the following
+1) we can copy every message sent to a special audit exchange
+2) messages left unprocessed on Qs can be sent to a special dead letter exchange
+3) messages that were sent to a topic but which were unrouted can be sent to a special unrouted exchange.
+
+This demo declares the following
+
+Exchanges
+sys.ex.audit - where a copy of every inbound message gets sent
+sys.ex.unrouted - where unrouted messages get sent
+sys.ex.dead.letter - where unprocessed messages get sent
+
+For simplicity - these are all fanout exchanges.
+
+Queues
+sys.q.audit.01 - a queue bound to sys.ex.audit
+sys.q.dead.letter.01 - a queue bound to sys.ex.audit
+sys.q.unrouted.01 - a queue bound to sys.ex.audit
+
+Instructions
+
+Assumptions : you have rabbit admin username and password
+
+$ export RBT_USER=<your rabbit admin user>
+$ export RBT_PASSWD=<your rabbit admin password>
+
+create a variable to hold the new vhost name for this demo - 'vhDemo01' is the example used here.
+
+$ export VHOST='vhDemo01'
+
+create the vhost
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD declare vhost name=$VHOST
+
+import the rabbit config for this demo into this vhost
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST import ./rbtCfg_06_DLQ_TTL_AND_UNROUTED_CONFIG.JSON
+
+Check that 5 new exchanges have been defined.
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list exchanges | grep -v amq | grep -v direct
++--------------------+---------+
+|        name        |  type   |
++--------------------+---------+
+| ex.entry.point     | fanout  |
+| ex.router.main     | topic   |
+| sys.ex.audit       | fanout  |
+| sys.ex.dead.letter | fanout  |
+| sys.ex.unrouted    | fanout  |
++--------------------+---------+
+
+Note the naming convention - "system or management" exchanges used to help ensure good management of our rabbit setup - start with "sys.ex"
+ - other exchanges start with "ex". This naming pattern is important.
+
+1) ex.entry.point - this is where messages enter the system.
+This fanout exchanges sents every message to 2 other exchanges - sys.ex.audit and ex.router.main.
+2  sys.ex.audit - this saves a copy of every message for auditing.
+3) ex.router.main - this is where messages entering the system get routed.
+
+4) sys.ex.unrouted - this is where unrouted messages get sent - this helps ensure we don't lose messages.
+5) sys.ex.dead.etter - this is where unprocessed messages get sent - this helps ensure messages don't get stuck.
+
+Check that 5 new queues have been defined.
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.type1              | 0        |
+| q.type2              | 0        |
+| sys.q.audit.01       | 0        |
+| sys.q.dead.letter.01 | 0        |
+| sys.q.unrouted.01    | 0        |
++----------------------+----------+
+Note the naming convention - "system or management" queues used to help ensure good management of our rabbit setup - start with "sys.q"
+ - other exchanges start with "q.". This naming pattern is important.
+
+1) sys.q.audit.01  - this is a queue used to hold audit messages sent to 'sys.ex.audit'
+2) sys.q.dead.letter.01 - this is a queue used to hold unprocessed messages sent to 'sys.ex.dead.letter'
+3) sys.q.unrouted.01 - this is a queue used to hold the "unrouted" messages sent to 'sys.ex.unrouted'
+4) q.type1 - this queue is used to hold 'type1' messages sent to 'ex.router.main'
+5) q.type2 - this queue is used to hold 'type2' messages sent to 'ex.router.main'
+
+Check that the following 7 bindings have been defined.
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list bindings | grep -v '^|  '
++--------------------+----------------------+----------------------+
++--------------------+----------------------+----------------------+
+| ex.entry.point     | ex.router.main       |                      |
+| ex.entry.point     | sys.ex.audit         |                      |
+| ex.router.main     | q.type1              | type1                |
+| ex.router.main     | q.type2              | type2                |
+| sys.ex.audit       | sys.q.audit.01       |                      |
+| sys.ex.dead.letter | sys.q.dead.letter.01 |                      |
+| sys.ex.unrouted    | sys.q.unrouted.01    |                      |
++--------------------+----------------------+----------------------+
+The first 2 are fanout bindings from ex.entry.point to 'sys.ex.audit' and 'ex.router.main'
+The next 2 are topic bindings from ex.entry.point to 'q.type1' for 'type1' and 'q.type2' for 'type2'
+The last 3 are fanout bindings for each of the 'sys' exchanges to their queues.
+
+In addition to Exchanges, Queues and Bindings - this demo relies on 2 Routing "Policies". These help provide extra routing for unprocessed and unrouted messages.
++----------+-----------------------+-----------+----------------------------------------------------------------------+--------------+----------+
+|  vhost   |         name          | apply-to  |                              definition                              |   pattern    | priority |
++----------+-----------------------+-----------+----------------------------------------------------------------------+--------------+----------+
+| vhDemo01 | unroutedMessagePolicy | exchanges | {"alternate-exchange": "sys.ex.unrouted"}                            | ^ex.router.* | 0        |
+| vhDemo01 | messageTimeoutPolicy  | queues    | {"message-ttl": 30000, "dead-letter-exchange": "sys.ex.dead.letter"} | ^q.*         | 1        |
++----------+-----------------------+-----------+----------------------------------------------------------------------+--------------+----------+
+
+The policy 'unroutedMessagePolicy' applies to exchanges starting with 'ex.router' - any unrouted message gets sent to 'sys.ex.unrouted'
+The policy 'messageTimeoutPolicy' applies to queues starting with 'q' - any message still on a queue after 30seconds is sent to 'sys.ex.dead.letter'
+
+Note : because of these policies - it's important to name the queues and exchanges carefully.
+
+If we send a message with routing key 'type1' to 'ex.entry.point' - it should initially end up on
+1) sys.q.audit.01 - for auditing
+2) q.type1 - because of the routing configuration and the message had routing key 'type1'
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="type1" exchange="ex.entry.point" payload="type1:test message"
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.type1              | 1        |
+| q.type2              | 0        |
+| sys.q.audit.01       | 1        |
+| sys.q.dead.letter.01 | 0        |
+| sys.q.unrouted.01    | 0        |
++----------------------+----------+
+
+If we wait 30 seconds and check again
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.type1              | 0        |
+| q.type2              | 0        |
+| sys.q.audit.01       | 1        |
+| sys.q.dead.letter.01 | 1        |
+| sys.q.unrouted.01    | 0        |
++----------------------+----------+
+The message has been moved from 'q.type2' to 'sys.q.dead.letter.02'
+
+If we send a message with routing key 'type2' to 'ex.entry.point' - it should initially end up on
+1) sys.q.audit.02 - for auditing
+2) q.type2 - because of the routing configuration and the message had routing key 'type2'
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="type2" exchange="ex.entry.point" payload="type2:test message"
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.type1              | 0        |
+| q.type2              | 1        |
+| sys.q.audit.01       | 2        |
+| sys.q.dead.letter.01 | 1        |
+| sys.q.unrouted.01    | 0        |
++----------------------+----------+
+If we wait 30 seconds and check again
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST list queues
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.type1              | 0        |
+| q.type2              | 0        |
+| sys.q.audit.01       | 2        |
+| sys.q.dead.letter.01 | 2        |
+| sys.q.unrouted.01    | 0        |
++----------------------+----------+
+The message has been moved from 'q.type2' to 'sys.q.dead.letter.01'
+
+If we send a message with routing key 'type3' to 'ex.entry.point' - it should end up on
+1) sys.q.audit.02 - for auditing
+2) sys.q.unrouted.01 - because the message was unrouted.
+
+$ rabbitmqadmin --user=$RBT_USER --password=$RBT_PASSWD --vhost=$VHOST publish routing_key="type3" exchange="ex.entry.point" payload="type3:test message"
++----------------------+----------+
+|         name         | messages |
++----------------------+----------+
+| q.type1              | 0        |
+| q.type2              | 0        |
+| sys.q.audit.01       | 3        |
+| sys.q.dead.letter.01 | 2        |
+| sys.q.unrouted.01    | 1        |
++----------------------+----------+
+
+
+
+
+
